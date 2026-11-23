@@ -67,18 +67,19 @@ class D3AFileSystem(AbstractFileSystem):
 
     @staticmethod
     def resolve_identifier(identifier):
-        # check whether identifier is already a URL
-        parsed_url = urlparse(identifier)
-        if all([parsed_url.scheme, parsed_url.netloc, parsed_url.path]):
-            return identifier
-
-        # check possible identifier types
-        possible_urls = [
+        # possible identifier types
+        candidate_urls = [
             f"https://doi.org/{identifier}",
             f"https://hdl.handle.net/{identifier}",
         ]
-        for url in possible_urls:
-            resp = requests.head(url, allow_redirects=True)
+
+        # if identifier is already a URL, other options need not be checked
+        parsed_url = urlparse(identifier)
+        if all([parsed_url.scheme, parsed_url.netloc, parsed_url.path]):
+            candidate_urls = [identifier]
+
+        for url in candidate_urls:
+            resp = requests.head(url)
             if resp.ok:
                 return url
 
